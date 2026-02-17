@@ -86,7 +86,7 @@ MVPフェーズの目的は、**「投稿 → AI返信 → タイムライン表
        |
 [OpenAI API] - GPTモデル (chat形式)
        |
-[Database] - PostgreSQL（投稿・返信管理用）
+[Database] - MySQL（投稿・返信管理用）
 ```
 
 
@@ -120,7 +120,7 @@ MVPフェーズの目的は、**「投稿 → AI返信 → タイムライン表
 - **アプリ名**: komore-log（こもれろぐ）
 - **開発言語**: Java 17
 - **フレームワーク**: Spring Boot 3.x
-- **データベース**: PostgreSQL
+- **データベース**: MySQL
 - **AI連携**: OpenAI GPT API（Chat Completions）
 - **デプロイ環境（MVP）**: Render / Heroku / AWS（いずれか軽量環境）
 
