@@ -15,7 +15,7 @@
 ### 2.1 リポジトリ（Repository）の作成
 データベースを操作するための「リモコン」を作ります。
 
-- [ ] **`PostRepository.java` の作成**
+- [x] **`PostRepository.java` の作成**
     - パッケージ: `com.komore.komorelog.repository`
     - 内容: `JpaRepository` を継承して、基本的な保存・取得・削除ができるようにする。
     - **初心者解説**: これを作るだけで、プログラミングで面倒な「SQL文」を自分で書かなくてもデータベースが動かせるようになります。
@@ -23,7 +23,7 @@
 ### 2.2 サービス（Service）の作成
 アプリの「ルール（業務ロジック）」を書く場所を作ります。
 
-- [ ] **`PostService.java` の作成**
+- [x] **`PostService.java` の作成**
     - パッケージ: `com.komore.komorelog.service`
     - 機能:
         1. 全件取得（新しい順）
@@ -33,7 +33,7 @@
 ### 2.3 コントローラー（Controller）の作成
 ブラウザからのリクエスト（注文）を受け取る「窓口」を作ります。
 
-- [ ] **`PostController.java` の作成**
+- [x] **`PostController.java` の作成**
     - パッケージ: `com.komore.komorelog.controller`
     - エンドポイント（窓口のURL）:
         - `GET /api/posts`: 投稿一覧を返す
@@ -45,7 +45,7 @@
 
 ## 3. 完了条件
 - [x] すべてのクラス（Repository, Service, Controller）がエラーなく作成されている。
-- [ ] アプリを起動し、ツールを使って投稿・取得・削除の命令が通ることを確認する。
+- [x] アプリを起動し、ツールを使って投稿・取得・削除の命令が通ることを確認する。
 
 ---
 
