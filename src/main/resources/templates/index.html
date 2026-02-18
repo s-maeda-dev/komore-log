@@ -1,46 +1,74 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
-    <title>komore - こもれ</title>
+    <title>こもろぐ komore-log</title>
     <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f8fdf8;
-            color: #2c4c2c;
-        }
-
-        .container {
-            text-align: center;
-            padding: 2rem;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-        }
-
-        h1 {
-            font-weight: 300;
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            color: #668866;
-        }
+        body { font-family: sans-serif; max-width: 600px; margin: 2em auto; padding: 0 1em; line-height: 1.6; background-color: #f0f4f8; }
+        .container { background: white; padding: 2em; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .form-group { margin-bottom: 1em; }
+        textarea { width: 100%; height: 100px; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 0.7em 1.5em; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1em; }
+        button:hover { background-color: #2980b9; }
+        .error-message { color: #e74c3c; margin-bottom: 1em; font-weight: bold; display: none; }
+        .post-list { margin-top: 2em; }
+        .post-item { border-bottom: 1px solid #eee; padding: 1em 0; }
+        .post-content { font-weight: bold; }
+        .ai-reply { color: #7f8c8d; font-style: italic; margin-top: 0.5em; padding-left: 1em; border-left: 3px solid #bdc3c7; }
+        .timestamp { font-size: 0.8em; color: #95a5a6; }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <h1>komoreへようこそ！</h1>
-        <p>心に寄り添う、AI共感型つぶやきアプリ</p>
-    </div>
-</body>
+        <h1>こもろぐ komore-log</h1>
+        
+        <div id="errorMessage" class="error-message"></div>
 
+        <div class="form-group">
+            <textarea id="postContent" placeholder="今の気持ちをつぶやいてみましょう（300文字以内）"></textarea>
+            <button onclick="submitPost()">送信する</button>
+        </div>
+
+        <div class="post-list">
+            <div th:each="post : ${posts}" class="post-item">
+                <div class="post-content" th:text="${post.content}">投稿内容</div>
+                <div class="ai-reply" th:text="${post.aiReply}">AIの返信</div>
+                <div class="timestamp" th:text="${#temporals.format(post.createdAt, 'yyyy/MM/dd HH:mm')}">投稿日時</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function submitPost() {
+            const content = document.getElementById('postContent').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // エラー表示を初期化
+            errorMessage.style.display = 'none';
+            errorMessage.textContent = '';
+
+            try {
+                const response = await fetch('/api/posts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ content: content })
+                });
+
+                if (response.ok) {
+                    // 成功したらリロードして最新の一覧を表示
+                    location.reload();
+                } else {
+                    // バリデーションエラーがあった場合
+                    const errorData = await response.json();
+                    errorMessage.textContent = errorData.content || 'エラーが発生しました。';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('通信エラーが発生しました。');
+            }
+        }
+    </script>
+</body>
 </html>
