@@ -2,10 +2,11 @@ package com.komore.komorelog.controller;
 
 import com.komore.komorelog.entity.Post;
 import com.komore.komorelog.service.PostService;
+import com.komore.komorelog.dto.PostRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 投稿に関するリクエスト（API）を受け取るためのコントローラー。
@@ -32,9 +33,8 @@ public class PostController {
      * Body: { "content": "つぶやき内容" }
      */
     @PostMapping
-    public Post createPost(@RequestBody Map<String, String> request) {
-        String content = request.get("content");
-        return postService.savePost(content);
+    public Post createPost(@Valid @RequestBody PostRequest request) {
+        return postService.savePost(request.getContent());
     }
 
     /**
