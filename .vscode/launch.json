@@ -5,7 +5,8 @@
             "type": "java",
             "name": "KomoreLogApplication",
             "request": "launch",
-            "mainClass": "com.komore.komorelog.KomoreLogApplication"
+            "mainClass": "com.komore.komorelog.KomoreLogApplication",
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

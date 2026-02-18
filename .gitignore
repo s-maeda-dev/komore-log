@@ -34,3 +34,5 @@ target/
 .classpath
 .factorypath
 .vscode/
+# Local Environment Variables
+.env

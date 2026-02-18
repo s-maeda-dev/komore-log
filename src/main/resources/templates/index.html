@@ -1,39 +1,131 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>こもろぐ komore-log</title>
     <style>
-        body { font-family: sans-serif; max-width: 600px; margin: 2em auto; padding: 0 1em; line-height: 1.6; background-color: #f0f4f8; }
-        .container { background: white; padding: 2em; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; text-align: center; }
-        .form-group { margin-bottom: 1em; }
-        textarea { width: 100%; height: 100px; padding: 0.5em; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; padding: 0.7em 1.5em; border-radius: 4px; cursor: pointer; width: 100%; font-size: 1em; }
-        button:hover { background-color: #2980b9; }
-        .error-message { color: #e74c3c; margin-bottom: 1em; font-weight: bold; display: none; }
-        .post-list { margin-top: 2em; }
-        .post-item { border-bottom: 1px solid #eee; padding: 1em 0; }
-        .post-content { font-weight: bold; }
-        .ai-reply { color: #7f8c8d; font-style: italic; margin-top: 0.5em; padding-left: 1em; border-left: 3px solid #bdc3c7; }
-        .timestamp { font-size: 0.8em; color: #95a5a6; }
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 2em auto;
+            padding: 0 1em;
+            line-height: 1.6;
+            background-color: #f0f4f8;
+        }
+
+        .container {
+            background: white;
+            padding: 2em;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1em;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 0.5em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.7em 1.5em;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1em;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-bottom: 1em;
+            font-weight: bold;
+            display: none;
+        }
+
+        .post-list {
+            margin-top: 2em;
+        }
+
+        .post-item {
+            border-bottom: 1px solid #eee;
+            padding: 1em 0;
+        }
+
+        .post-content {
+            font-weight: bold;
+        }
+
+        .ai-reply {
+            color: #7f8c8d;
+            font-style: italic;
+            margin-top: 0.5em;
+            padding-left: 1em;
+            border-left: 3px solid #bdc3c7;
+            white-space: pre-wrap;
+        }
+
+        .timestamp {
+            font-size: 0.8em;
+            color: #95a5a6;
+        }
+
+        /* ロード中アニメーション用のスタイル */
+        .thinking {
+            color: #3498db;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>こもろぐ komore-log</h1>
-        
+
         <div id="errorMessage" class="error-message"></div>
 
         <div class="form-group">
             <textarea id="postContent" placeholder="今の気持ちをつぶやいてみましょう（300文字以内）"></textarea>
-            <button onclick="submitPost()">送信する</button>
+            <button id="submitBtn" onclick="submitPost()">送信する</button>
         </div>
 
-        <div class="post-list">
-            <div th:each="post : ${posts}" class="post-item">
+        <div id="postList" class="post-list">
+            <div th:each="post : ${posts}" class="post-item" th:id="'post-' + ${post.id}">
                 <div class="post-content" th:text="${post.content}">投稿内容</div>
-                <div class="ai-reply" th:text="${post.aiReply}">AIの返信</div>
+                <div class="ai-reply" th:classappend="${post.aiReply == 'AIが考え中...'} ? 'thinking' : ''"
+                    th:text="${post.aiReply}">AIの返信</div>
                 <div class="timestamp" th:text="${#temporals.format(post.createdAt, 'yyyy/MM/dd HH:mm')}">投稿日時</div>
             </div>
         </div>
@@ -43,12 +135,16 @@
         async function submitPost() {
             const content = document.getElementById('postContent').value;
             const errorMessage = document.getElementById('errorMessage');
-            
-            // エラー表示を初期化
+            const submitBtn = document.getElementById('submitBtn');
+            const postContentInput = document.getElementById('postContent');
+
             errorMessage.style.display = 'none';
             errorMessage.textContent = '';
 
             try {
+                submitBtn.disabled = true; // 二重送信防止
+
+                // 1. まず投稿を保存する (AIの回答は待たない)
                 const response = await fetch('/api/posts', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -56,19 +152,72 @@
                 });
 
                 if (response.ok) {
-                    // 成功したらリロードして最新の一覧を表示
-                    location.reload();
+                    const savedPost = await response.json();
+
+                    // 2. 画面に自分の投稿をすぐに表示する！ (リロードせずにJavaScriptで追加)
+                    prependPostToUI(savedPost);
+                    postContentInput.value = ''; // 入力欄を清める
+                    submitBtn.disabled = false;
+
+                    // 3. 裏側で AI の返信を取得しに行く
+                    fetchAiReply(savedPost.id);
+
                 } else {
-                    // バリデーションエラーがあった場合
                     const errorData = await response.json();
                     errorMessage.textContent = errorData.content || 'エラーが発生しました。';
                     errorMessage.style.display = 'block';
+                    submitBtn.disabled = false;
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('通信エラーが発生しました。');
+                submitBtn.disabled = false;
+            }
+        }
+
+        // 新しい投稿をリストの先頭に加える
+        function prependPostToUI(post) {
+            const list = document.getElementById('postList');
+            const div = document.createElement('div');
+            div.className = 'post-item';
+            div.id = 'post-' + post.id;
+
+            // シンプルな日付フォーマット
+            const now = new Date();
+            const dateStr = now.getFullYear() + '/' +
+                ('0' + (now.getMonth() + 1)).slice(-2) + '/' +
+                ('0' + now.getDate()).slice(-2) + ' ' +
+                ('0' + now.getHours()).slice(-2) + ':' +
+                ('0' + now.getMinutes()).slice(-2);
+
+            div.innerHTML = `
+                <div class="post-content">${post.content}</div>
+                <div class="ai-reply thinking">AIが考え中...</div>
+                <div class="timestamp">${dateStr}</div>
+            `;
+            list.insertBefore(div, list.firstChild);
+        }
+
+        // AIの返信を取得して画面を更新する
+        async function fetchAiReply(postId) {
+            try {
+                const response = await fetch(`/api/posts/${postId}/ai-reply`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    const updatedPost = await response.json();
+                    const postElement = document.getElementById('post-' + postId);
+                    if (postElement) {
+                        const replyElement = postElement.querySelector('.ai-reply');
+                        replyElement.textContent = updatedPost.aiReply;
+                        replyElement.classList.remove('thinking');
+                    }
+                }
+            } catch (error) {
+                console.error('AI Reply Error:', error);
             }
         }
     </script>
 </body>
+
 </html>

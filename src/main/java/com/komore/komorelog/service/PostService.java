@@ -1,5 +1,6 @@
 package com.komore.komorelog.service;
 
+import com.komore.komorelog.ai.GeminiService;
 import com.komore.komorelog.entity.Post;
 import com.komore.komorelog.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final GeminiService geminiService;
 
     /**
      * すべての投稿を新しい順に取得します。
@@ -26,15 +28,26 @@ public class PostService {
 
     /**
      * 新しい投稿を保存します。
-     * 現在は AI 返信としてダミーテキストを設定します。
+     * この段階では AI 返信はまだ生成しません（フロントエンドで別送するため）。
      */
     @Transactional
     public Post savePost(String content) {
         Post post = new Post();
         post.setContent(content);
+        post.setAiReply("AIが考え中..."); // 初期状態
+        return postRepository.save(post);
+    }
 
-        // Phase 3 で本物の AI と連携させます。今は仮の文字を入れます。
-        post.setAiReply("（AIがあなたの言葉を優しく受け止めています...）");
+    /**
+     * 指定した投稿 ID に対して、Gemini API を使ってお返事を生成・保存します。
+     */
+    @Transactional
+    public Post generateAiReply(Long id) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("投稿が見つかりませんでした。"));
+
+        String aiReply = geminiService.getEmpathyReply(post.getContent());
+        post.setAiReply(aiReply);
 
         return postRepository.save(post);
     }

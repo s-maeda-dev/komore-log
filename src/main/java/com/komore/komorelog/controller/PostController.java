@@ -38,6 +38,14 @@ public class PostController {
     }
 
     /**
+     * AI の返信のみを別途生成するエンドポイント
+     */
+    @PostMapping("/{id}/ai-reply")
+    public Post generateAiReply(@PathVariable Long id) {
+        return postService.generateAiReply(id);
+    }
+
+    /**
      * 指定した投稿を削除します。
      * DELETE http://localhost:8080/api/posts/1
      */
