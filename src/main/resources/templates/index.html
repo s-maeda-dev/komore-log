@@ -3,132 +3,139 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>こもろぐ komore-log</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            max-width: 600px;
-            margin: 2em auto;
-            padding: 0 1em;
-            line-height: 1.6;
-            background-color: #f0f4f8;
-        }
-
-        .container {
-            background: white;
-            padding: 2em;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-        }
-
-        .form-group {
-            margin-bottom: 1em;
-        }
-
-        textarea {
-            width: 100%;
-            height: 100px;
-            padding: 0.5em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 0.7em 1.5em;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1em;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        .error-message {
-            color: #e74c3c;
-            margin-bottom: 1em;
-            font-weight: bold;
-            display: none;
-        }
-
-        .post-list {
-            margin-top: 2em;
-        }
-
-        .post-item {
-            border-bottom: 1px solid #eee;
-            padding: 1em 0;
-        }
-
-        .post-content {
-            font-weight: bold;
-        }
-
-        .ai-reply {
-            color: #7f8c8d;
-            font-style: italic;
-            margin-top: 0.5em;
-            padding-left: 1em;
-            border-left: 3px solid #bdc3c7;
-            white-space: pre-wrap;
-        }
-
-        .timestamp {
-            font-size: 0.8em;
-            color: #95a5a6;
-        }
-
-        /* ロード中アニメーション用のスタイル */
-        .thinking {
-            color: #3498db;
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes blink {
-            0% {
-                opacity: 1;
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>komore-log | こもれログ</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'komore-brown': '#8D7D77',
+                        'komore-brown-dark': '#5D4037',
+                        'komore-bg': '#FDFCFB',
+                        'komore-card-bg': '#F9F7F6',
+                        'komore-leaf-light': '#E8EBE9',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Outfit', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out forwards',
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
             }
-
-            50% {
-                opacity: 0.3;
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply bg-komore-bg text-komore-brown-dark font-sans antialiased;
             }
-
-            100% {
-                opacity: 1;
+            h1, h2, h3 {
+                @apply font-display text-komore-brown-dark;
             }
+        }
+        .glass-card {
+            @apply bg-white/80 backdrop-blur-md border border-komore-brown/10 shadow-sm rounded-2xl;
+        }
+        .soft-gradient {
+            background: linear-gradient(135deg, #F9F7F6 0%, #FFFFFF 100%);
         }
     </style>
 </head>
 
-<body>
-    <div class="container">
-        <h1>こもろぐ komore-log</h1>
+<body class="min-h-screen py-8 md:py-12">
+    <div class="max-w-2xl mx-auto px-4">
+        <!-- Header -->
+        <header class="text-center mb-12 animate-fade-in">
+            <h1 class="text-4xl font-semibold tracking-tight text-komore-brown-dark">こもろぐ</h1>
+            <p class="text-xs font-medium tracking-[0.2em] text-komore-brown/40 mb-3">komore-log</p>
+            <p class="text-komore-brown/70 font-light italic text-sm">こもれびのように、あなたの心に寄り添う</p>
+        </header>
 
-        <div id="errorMessage" class="error-message"></div>
-
-        <div class="form-group">
-            <textarea id="postContent" placeholder="今の気持ちをつぶやいてみましょう（300文字以内）"></textarea>
-            <button id="submitBtn" onclick="submitPost()">送信する</button>
+        <div id="errorMessage"
+            class="hidden mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100 animate-fade-in">
         </div>
 
-        <div id="postList" class="post-list">
-            <div th:each="post : ${posts}" class="post-item" th:id="'post-' + ${post.id}">
-                <div class="post-content" th:text="${post.content}">投稿内容</div>
-                <div class="ai-reply" th:classappend="${post.aiReply == 'AIが考え中...'} ? 'thinking' : ''"
-                    th:text="${post.aiReply}">AIの返信</div>
-                <div class="timestamp" th:text="${#temporals.format(post.createdAt, 'yyyy/MM/dd HH:mm')}">投稿日時</div>
+        <!-- Input Section -->
+        <section class="mb-12 animate-fade-in" style="animation-delay: 0.1s;">
+            <div class="glass-card p-6 shadow-lg border border-komore-brown/10">
+                <textarea id="postContent"
+                    class="w-full h-32 p-4 bg-transparent border-none focus:ring-0 text-lg placeholder-komore-brown/40 resize-none text-komore-brown-dark"
+                    placeholder="今のこころの声を、そっと届けてみませんか？"></textarea>
+                <div class="flex justify-end mt-4">
+                    <button id="submitBtn" onclick="submitPost()"
+                        class="bg-komore-brown text-white px-8 py-3 rounded-full font-medium hover:bg-komore-brown-dark transition-all transform hover:scale-[1.02] active:scale-95 shadow-md">
+                        届ける
+                    </button>
+                </div>
             </div>
-        </div>
+        </section>
+
+        <!-- Timeline Section -->
+        <section class="space-y-6 animate-fade-in" style="animation-delay: 0.2s;">
+            <div id="postList" class="flex flex-col gap-6">
+                <div th:each="post : ${posts}"
+                    class="glass-card p-6 soft-gradient hover:shadow-md transition-shadow relative group"
+                    th:id="'post-' + ${post.id}">
+                    <div class="post-content text-komore-brown-dark text-lg mb-4 leading-relaxed whitespace-pre-wrap"
+                        th:text="${post.content}">投稿内容
+                    </div>
+
+                    <!-- AI Reply Area -->
+                    <div class="ai-reply-container mt-4 pt-4 border-t border-komore-brown/10 flex gap-4">
+                        <div class="shrink-0">
+                            <div
+                                class="w-10 h-10 rounded-xl bg-komore-leaf-light flex items-center justify-center text-komore-brown overflow-hidden">
+                                <svg class="w-8 h-8 transform -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+                                    <path
+                                        d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,11 17,8 17,8Z" />
+                                    <circle cx="8" cy="14" r="1.2" fill="#5D4037" />
+                                    <circle cx="12" cy="13.5" r="1.2" fill="#5D4037" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <div class="text-xs font-semibold text-komore-brown tracking-wider mb-1">komore
+                            </div>
+                            <div class="ai-reply text-komore-brown/80 italic text-sm leading-relaxed whitespace-pre-wrap"
+                                th:classappend="${post.aiReply == 'AIが考え中...'} ? 'animate-pulse text-komore-brown/40' : ''"
+                                th:text="${post.aiReply == 'AIが考え中...' ? 'komoreからの返事をまっています' : post.aiReply}">
+                                AIの返信
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
+                        <span class="timestamp text-xs text-slate-400 font-light"
+                            th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">2024.02.19 12:00</span>
+                        <button th:onclick="'deletePost(' + ${post.id} + ')'"
+                            class="text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                            title="削除">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <script>
@@ -179,21 +186,43 @@
         function prependPostToUI(post) {
             const list = document.getElementById('postList');
             const div = document.createElement('div');
-            div.className = 'post-item';
+            div.className = 'glass-card p-6 leaf-gradient border border-komore-leaf hover:shadow-md transition-all animate-fade-in relative group';
             div.id = 'post-' + post.id;
 
-            // シンプルな日付フォーマット
             const now = new Date();
-            const dateStr = now.getFullYear() + '/' +
-                ('0' + (now.getMonth() + 1)).slice(-2) + '/' +
+            const dateStr = now.getFullYear() + '.' +
+                ('0' + (now.getMonth() + 1)).slice(-2) + '.' +
                 ('0' + now.getDate()).slice(-2) + ' ' +
                 ('0' + now.getHours()).slice(-2) + ':' +
                 ('0' + now.getMinutes()).slice(-2);
 
             div.innerHTML = `
-                <div class="post-content">${post.content}</div>
-                <div class="ai-reply thinking">AIが考え中...</div>
-                <div class="timestamp">${dateStr}</div>
+                <div class="post-content text-komore-brown-dark text-lg mb-4 leading-relaxed">${post.content}</div>
+                <div class="ai-reply-container mt-4 pt-4 border-t border-komore-brown/10 flex gap-4">
+                    <div class="shrink-0">
+                        <div class="w-10 h-10 rounded-xl bg-komore-leaf-light flex items-center justify-center text-komore-brown overflow-hidden">
+                            <svg class="w-8 h-8 transform -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 2,11.5 2,13.5C2,15.5 3.75,17.25 3.75,17.25C7,11 17,8 17,8Z" />
+                                <circle cx="8" cy="14" r="1.2" fill="#5D4037" />
+                                <circle cx="12" cy="13.5" r="1.2" fill="#5D4037" />
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-xs font-semibold text-komore-brown tracking-wider mb-1">komore</div>
+                        <div class="ai-reply text-komore-brown/80 italic text-sm leading-relaxed whitespace-pre-wrap animate-pulse text-komore-brown/40">komoreからの返事をまっています</div>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
+                    <span class="timestamp text-xs text-slate-400 font-light">${dateStr}</span>
+                    <button onclick="deletePost(${post.id})"
+                        class="text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 p-1"
+                        title="削除">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
+                </div>
             `;
             list.insertBefore(div, list.firstChild);
         }
@@ -210,7 +239,8 @@
                     if (postElement) {
                         const replyElement = postElement.querySelector('.ai-reply');
                         replyElement.textContent = updatedPost.aiReply;
-                        replyElement.classList.remove('thinking');
+                        replyElement.classList.remove('animate-pulse', 'text-komore-brown/40');
+                        replyElement.classList.add('animate-fade-in');
                     }
                 }
             } catch (error) {
