@@ -62,6 +62,7 @@
 - [x] 開発環境構築（MySQL, Java/Spring Boot）
 - [x] プロジェクト起動確認
 - [x] Phase 4: フロントエンド実装と UI 刷新
+- [x] Phase 5: 総仕上げと動作確認
 
 ---
 

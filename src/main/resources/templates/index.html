@@ -122,7 +122,7 @@
 
                     <div class="flex items-center justify-between mt-6 pt-4 border-t border-slate-50">
                         <span class="timestamp text-xs text-slate-400 font-light"
-                            th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd HH:mm')}">2024.02.19 12:00</span>
+                            th:text="${#temporals.format(post.createdAt, 'yyyy/MM/dd HH:mm')}">2024/02/19 12:00</span>
                         <button th:onclick="'deletePost(' + ${post.id} + ')'"
                             class="text-slate-300 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 p-1"
                             title="削除">
@@ -140,10 +140,16 @@
 
     <script>
         async function submitPost() {
-            const content = document.getElementById('postContent').value;
+            const content = document.getElementById('postContent').value.trim();
             const errorMessage = document.getElementById('errorMessage');
             const submitBtn = document.getElementById('submitBtn');
             const postContentInput = document.getElementById('postContent');
+
+            if (!content) {
+                errorMessage.textContent = '今のこころの声を、文字にして聞かせてくださいね。';
+                errorMessage.style.display = 'block';
+                return;
+            }
 
             errorMessage.style.display = 'none';
             errorMessage.textContent = '';
@@ -190,8 +196,8 @@
             div.id = 'post-' + post.id;
 
             const now = new Date();
-            const dateStr = now.getFullYear() + '.' +
-                ('0' + (now.getMonth() + 1)).slice(-2) + '.' +
+            const dateStr = now.getFullYear() + '/' +
+                ('0' + (now.getMonth() + 1)).slice(-2) + '/' +
                 ('0' + now.getDate()).slice(-2) + ' ' +
                 ('0' + now.getHours()).slice(-2) + ':' +
                 ('0' + now.getMinutes()).slice(-2);
@@ -245,6 +251,35 @@
                 }
             } catch (error) {
                 console.error('AI Reply Error:', error);
+            }
+        }
+
+        // 投稿を削除する
+        async function deletePost(postId) {
+            if (!confirm('この投稿を削除してもよろしいですか？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/posts/${postId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    const postElement = document.getElementById('post-' + postId);
+                    if (postElement) {
+                        // ふわっと消えるアニメーション
+                        postElement.style.transition = 'all 0.5s ease';
+                        postElement.style.opacity = '0';
+                        postElement.style.transform = 'translateY(10px)';
+                        setTimeout(() => postElement.remove(), 500);
+                    }
+                } else {
+                    alert('削除に失敗しました。');
+                }
+            } catch (error) {
+                console.error('Delete Error:', error);
+                alert('通信エラーが発生しました。');
             }
         }
     </script>
